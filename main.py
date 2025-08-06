@@ -162,7 +162,7 @@ async def auth_slack_callback(code: str, state=None):
     response.set_cookie(
         key="token",
         value=access_token,
-        # domain=".abdullah.buzz",  # or try specific domain if still not showing
+        domain=".abdullah.buzz",  # or try specific domain if still not showing
         httponly=False,
         secure=True,
         samesite="None",
