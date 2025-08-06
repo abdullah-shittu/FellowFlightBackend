@@ -160,8 +160,16 @@ async def auth_slack_callback(code: str, state=None):
     # return {"access_token": access_token, "token_type": "bearer"}
     response = RedirectResponse(url="https://fellowflightmatch.abdullah.buzz/")
     response.set_cookie(
-        key="token",
+        key="fellowflight_access_token",
         value=access_token,
+        domain=".abdullah.buzz",  # or try specific domain if still not showing
+        httponly=False,
+        secure=True,
+        samesite="None",
+    )
+    response.set_cookie(
+        key="fellowflight_form_complete",
+        value=False,
         domain=".abdullah.buzz",  # or try specific domain if still not showing
         httponly=False,
         secure=True,
