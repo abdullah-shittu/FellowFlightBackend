@@ -72,15 +72,15 @@ def _trigger_match_notifications(new_flight_id: int, user_info: Dict[str, Any]):
         f"Triggering notifications for new flight {new_flight_id} by {user_info['name']}"
     )
 
-    same_flight_matches = db_utils.find_matches_for_flight(
-        new_flight_id, user_info["id"]
-    )
+    # same_flight_matches = db_utils.find_matches_for_flight(
+    #     new_flight_id, user_info["id"]
+    # )
     overlap_matches = db_utils.find_overlaps_for_flight(new_flight_id, user_info["id"])
 
     message = f"You have a new FlightMate! {user_info['name']} just registered a flight that matches yours."
 
     notified_users = set()
-    for match in same_flight_matches + overlap_matches:
+    for match in overlap_matches:
         if match["slack_id"] not in notified_users:
             _send_slack_dm(match["slack_id"], message)
             notified_users.add(match["slack_id"])
