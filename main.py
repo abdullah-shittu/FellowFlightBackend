@@ -38,7 +38,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://fellowflightmatch.abdullah.buzz"],
+    allow_origins=["http://localhost:3000", "https://fellowflightmatch.abdullah.buzz"],``
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -317,18 +317,18 @@ async def formHandler(
     response.set_cookie(
         key="fellowflight_id",
         value=new_flight["id"],
-        domain=".abdullah.buzz",  # or try specific domain if still not showing
+        domain="fellowflightmatch.abdullah.buzz",  # Set to the specific subdomain
         httponly=False,
         secure=True,
         samesite="None",
     )
     response.set_cookie(
-        key="fellowflight_form_complete",
-        value=True,
-        domain=".abdullah.buzz",  # or try specific domain if still not showing
-        httponly=False,
-        secure=True,
-        samesite="None",
+    key="fellowflight_form_complete",
+    value="true",  # Value must be a string
+    domain="fellowflightmatch.abdullah.buzz",  # Set to the specific subdomain
+    httponly=False,  # Can be True if not needed by JavaScript
+    secure=True,
+    samesite="None",
     )
     return response
 
