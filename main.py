@@ -38,7 +38,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Add Hoppscotch or "*" if okay
+    allow_origins=["http://localhost:3000", "https://fellowflightmatch.abdullah.buzz"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
