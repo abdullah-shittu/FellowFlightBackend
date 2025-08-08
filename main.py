@@ -226,7 +226,7 @@ async def formHandler(
         response = RedirectResponse(url="/")
         response.set_cookie(
             key="fellowflight_form_complete",
-            value=False,
+            value=True,
             domain=".abdullah.buzz",  # or try specific domain if still not showing
             httponly=False,
             secure=True,
@@ -242,7 +242,7 @@ async def formHandler(
         response = RedirectResponse(url="/")
         response.set_cookie(
             key="fellowflight_form_complete",
-            value=False,
+            value=True,
             domain=".abdullah.buzz",  # or try specific domain if still not showing
             httponly=False,
             secure=True,
@@ -258,7 +258,12 @@ async def formHandler(
         except Exception as e:
             response = RedirectResponse(url="/")
             response.set_cookie(
-                "fellowflight_form_complete", "false", path="/", httponly=False
+                key="fellowflight_form_complete",
+                value=True,
+                domain=".abdullah.buzz",  # or try specific domain if still not showing
+                httponly=False,
+                secure=True,
+                samesite="None",
             )
             raise HTTPException(
                 status_code=423, detail=f"Couldn't create LinkedIn: {e}"
@@ -296,7 +301,7 @@ async def formHandler(
         response = RedirectResponse(url="/")
         response.set_cookie(
             key="fellowflight_form_complete",
-            value=False,
+            value=True,
             domain=".abdullah.buzz",  # or try specific domain if still not showing
             httponly=False,
             secure=True,
