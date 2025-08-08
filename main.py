@@ -312,7 +312,11 @@ async def formHandler(
     # Set completion cookie and redirect
     response = JSONResponse(
         status_code=status.HTTP_200_OK,
-        content={"success": True, "next": "/matches", "fellowflightmatch": new_flight},
+        content={
+            "success": True,
+            "next": "/matches",
+            "flight_id": new_flight["id"],
+        },
     )
 
     response.set_cookie(
