@@ -308,18 +308,19 @@ async def formHandler(
     response = JSONResponse(
         status_code=status.HTTP_200_OK, content={"success": True, "next": "/matches"}
     )
+
     response.set_cookie(
-        key="fellowflight_form_complete",
-        value="true",
-        # domain=".abdullah.buzz",  # or try specific domain if still not showing
+        key="fellowflight_id",
+        value=new_flight["id"],
+        domain=".abdullah.buzz",  # or try specific domain if still not showing
         httponly=False,
         secure=True,
         samesite="None",
     )
     response.set_cookie(
-        key="fellowflight_id",
-        value=new_flight["id"],
-        # domain=".abdullah.buzz",  # or try specific domain if still not showing
+        key="fellowflight_form_complete",
+        value=True,
+        domain=".abdullah.buzz",  # or try specific domain if still not showing
         httponly=False,
         secure=True,
         samesite="None",
