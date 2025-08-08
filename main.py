@@ -316,6 +316,14 @@ async def formHandler(
         secure=True,
         samesite="None",
     )
+    response.set_cookie(
+        key="fellowflight_id",
+        value=new_flight["id"],
+        # domain=".abdullah.buzz",  # or try specific domain if still not showing
+        httponly=False,
+        secure=True,
+        samesite="None",
+    )
     return response
 
 
