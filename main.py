@@ -106,6 +106,7 @@ async def auth_slack_login():
         "chat:write,im:write,users.profile:read"
     )  # only include if you're installing a bot
     redirect_url = f"https://slack.com/oauth/v2/authorize?client_id={client_id}&user_scope={user_scope}&scope={bot_scope}"
+    # print(redirect_url)
     return RedirectResponse(url=redirect_url)
 
 
@@ -207,18 +208,115 @@ async def delete_me(current_user: Dict[str, Any] = Depends(auth.get_current_user
 
 
 # == Forms ==
-@app.post("/api/v1/formHandler")
-async def formHandler(request: Request):
-    # Check if user is authorized
-    # Else return.
-    # Sanitize?
-    form = await request.form()  # this returns bytes
-    form_data = FormDataModel(**form_dict)
+# == Forms ==
+@app.post(
+    "/api/v1/formHandler",
+    tags=["Flights"],
+    status_code=status.HTTP_201_CREATED,
+)
+async def formHandler(
+    request: Request,
+    current_user: Dict[str, Any] = Depends(auth.get_current_user),
+):
+    # Extract and parse form data
+    try:
+        form = await request.form()
+        form_dict = dict(form)
+    except Exception:
+        response = RedirectResponse(url="/")
+        response.set_cookie(
+            key="fellowflight_form_complete",
+            value=False,
+            domain=".abdullah.buzz",  # or try specific domain if still not showing
+            httponly=False,
+            secure=True,
+            samesite="None",
+        )
+        raise HTTPException(status_code=400, detail="Failed to parse form data")
 
-    # update LinkedIn Url
-    # ...
-    # if user has existing flight don't create a flight return
-    # create flight
+    # Parse form into model
+    try:
+        print(form_dict)
+        form_data = FormDataModel(**form_dict)
+    except Exception as e:
+        response = RedirectResponse(url="/")
+        response.set_cookie(
+            key="fellowflight_form_complete",
+            value=False,
+            domain=".abdullah.buzz",  # or try specific domain if still not showing
+            httponly=False,
+            secure=True,
+            samesite="None",
+        )
+        raise HTTPException(status_code=422, detail=f"Invalid form data: {e}")
+
+    # Update LinkedIn tag
+
+    if form_data.linkedInTag:
+        try:
+            db_utils.update_user_linkedin(current_user["id"], form_data.linkedInTag)
+        except Exception as e:
+            response = RedirectResponse(url="/")
+            response.set_cookie(
+                "fellowflight_form_complete", "false", path="/", httponly=False
+            )
+            raise HTTPException(
+                status_code=423, detail=f"Couldn't create LinkedIn: {e}"
+            )
+    # Check if user already has a flight on that date
+    existing_flights = db_utils.get_flights_for_user(current_user["id"])
+    if existing_flights:  # naive match
+        print("FOUND")
+        response = RedirectResponse(url="/")
+        response.set_cookie(
+            key="fellowflight_form_complete",
+            value=True,
+            domain=".abdullah.buzz",  # or try specific domain if still not showing
+            httponly=False,
+            secure=True,
+            samesite="None",
+        )
+        raise HTTPException(
+            status_code=422,
+            detail=f"A flight has been created either delete your flight, or go to matches!",
+        )
+
+    # Create new flight
+    try:
+        flight_create = FlightCreate(
+            flight_number="NULL",
+            date=form_data.dateTimeFlight[:10],
+            dep_airport=form_data.airport,
+            departure_time=form_data.dateTimeFlight[11:16],
+            hours_early=float(form_data.hoursEarly),
+        )
+        new_flight = db_utils.insert_flight(current_user["id"], flight_create.dict())
+        _trigger_match_notifications(new_flight["id"], current_user)
+    except Exception as e:
+        response = RedirectResponse(url="/")
+        response.set_cookie(
+            key="fellowflight_form_complete",
+            value=False,
+            domain=".abdullah.buzz",  # or try specific domain if still not showing
+            httponly=False,
+            secure=True,
+            samesite="None",
+        )
+        raise HTTPException(status_code=500, detail=f"Failed to create flight: {e}")
+
+    # Set completion cookie and redirect
+    response = JSONResponse(
+        status_code=status.HTTP_200_OK, content={"success": True, "next": "/matches"}
+    )
+    response.set_cookie(
+        key="fellowflight_form_complete",
+        value="true",
+        # domain=".abdullah.buzz",  # or try specific domain if still not showing
+        httponly=False,
+        secure=True,
+        samesite="None",
+    )
+    return response
 
 
 # == Flights ==
@@ -232,6 +330,7 @@ async def create_flight(
     flight: FlightCreate, current_user: Dict[str, Any] = Depends(auth.get_current_user)
 ):
     """Creates a new flight entry for the authenticated user."""
+    # check if flight has been created or not?
     new_flight = db_utils.insert_flight(current_user["id"], flight.dict())
 
     # **TRIGGER INTERNAL NOTIFICATION FLOW**

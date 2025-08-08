@@ -1,5 +1,3 @@
-# models.py
-
 from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import date, time, datetime
@@ -55,16 +53,16 @@ class MatchProfile(BaseModel):
     name: str
     linkedin_url: Optional[str]
     slack_id: str
+    overlap_minutes: Optional[int]
 
 
 class MatchResponse(BaseModel):
-    same_flight: List[MatchProfile]
-    time_overlap: List[MatchProfile]
+    same_flight: Optional[List[MatchProfile]]
+    time_overlap: Optional[List[MatchProfile]]
 
 
 class FormDataModel(BaseModel):
     airport: str
-    flightNumber: str
     linkedInTag: str
     hoursEarly: float = Field(..., gt=0, le=12)
     dateTimeFlight: str  # you could also use datetime or time

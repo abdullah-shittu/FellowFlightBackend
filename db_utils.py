@@ -211,7 +211,6 @@ def find_overlaps_for_flight(
             JOIN users u2 ON f2.user_id = u2.id
             WHERE f1.id = %s 
               AND f2.user_id != %s
-              AND (f1.flight_number, f1.date) IS DISTINCT FROM (f2.flight_number, f2.date)
               AND (
                   tstzrange(
                       f1.date + f1.departure_time - (f1.hours_early * '1 hour'::interval),
@@ -225,6 +224,37 @@ def find_overlaps_for_flight(
             ORDER BY u2.id, overlap_minutes DESC;
         """
         cursor.execute(sql, (flight_id, user_id))
+        return [
+            {
+                "name": row["name"],
+                "linkedin_url": row["linkedin_url"],
+                "slack_id": row["slack_id"],
+                "overlap_minutes": row["overlap_minutes"],
+            }
+            for row in cursor.fetchall()
+        ]
+    finally:
+        return_db_conn(conn)
+
+
+def user_has_flight_on_date(user_id: uuid.UUID, flight_date: str) -> bool:
+    """Checks if a user already has a flight on the specified date (YYYY-MM-DD)."""
+    conn, cursor = get_db_conn()
+    try:
+        cursor.execute(
+            "SELECT 1 FROM flights WHERE user_id = %s AND date = %s LIMIT 1",
+            (user_id, flight_date),
+        )
+        return cursor.fetchone() is not None
+    finally:
+        return_db_conn(conn)
+
+
+def get_flights_for_user(user_id: uuid.UUID) -> List[Dict[str, Any]]:
+    """Returns all flight entries for a given user."""
+    conn, cursor = get_db_conn()
+    try:
+        cursor.execute("SELECT * FROM flights WHERE user_id = %s", (user_id,))
         return cursor.fetchall()
     finally:
         return_db_conn(conn)
